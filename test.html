@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empire Clicker - Construis ton Empire</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        #gameContainer {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            font-size: 42px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        #mainStats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .stat-display {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 30px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        #gameArea {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+        }
+        
+        #clickArea {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        #clickButton {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: 8px solid #fff;
+            border-radius: 50%;
+            font-size: 80px;
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+        
+        #clickButton:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .floating-number {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px);
+            }
+        }
+        
+        #buildingsPanel {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            max-height: 80vh;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+        
+        .building-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .building-card:hover {
+            border-color: #fff;
+            transform: translateX(-5px);
+            box-shadow: 5px 0 20px rgba(255, 255, 255, 0.3);
+        }
+        
+        .building-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .building-card.affordable {
+            border-color: #4ade80;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(74, 222, 128, 0);
+            }
+        }
+        
+        .building-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .building-icon {
+            font-size: 32px;
+            margin-right: 10px;
+        }
+        
+        .building-name {
+            font-size: 18px;
+            font-weight: bold;
+            flex: 1;
+        }
+        
+        .building-count {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .building-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        
+        .building-cost {
+            color: #fbbf24;
+        }
+        
+        .building-production {
+            color: #4ade80;
+        }
+        
+        #upgradesPanel {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .upgrade-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .upgrade-card {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+            color: #000;
+        }
+        
+        .upgrade-card:hover:not(.purchased) {
+            transform: scale(1.05);
+            border-color: #fff;
+        }
+        
+        .upgrade-card.purchased {
+            background: linear-gradient(135deg, #6ee7b7 0%, #3b82f6 100%);
+            cursor: default;
+            opacity: 0.7;
+        }
+        
+        .upgrade-card.locked {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+        
+        .upgrade-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+        
+        .upgrade-name {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .upgrade-cost {
+            font-size: 13px;
+            color: #333;
+        }
+        
+        #achievementsPanel {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .achievement-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .achievement {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .achievement.unlocked {
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.2);
+        }
+        
+        .achievement-icon {
+            font-size: 32px;
+            filter: grayscale(100%);
+        }
+        
+        .achievement.unlocked .achievement-icon {
+            filter: grayscale(0%);
+        }
+        
+        .achievement-text {
+            flex: 1;
+        }
+        
+        .achievement-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .achievement-desc {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        #prestigePanel {
+            background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+            text-align: center;
+            color: #000;
+            border: 4px solid #fff;
+        }
+        
+        #prestigeButton {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: #fff;
+            border: 4px solid #fff;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+        
+        #prestigeButton:hover:not(:disabled) {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        #prestigeButton:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        h2 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        #statsDisplay {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            border: 3px solid #fbbf24;
+            animation: slideIn 0.5s ease-out;
+            z-index: 1000;
+            max-width: 300px;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <header>
+            <h1>👑 EMPIRE CLICKER 👑</h1>
+            <div id="mainStats">
+                <div class="stat-display">
+                    <div class="stat-label">💰 Pièces d'or</div>
+                    <div class="stat-value" id="goldDisplay">0</div>
+                </div>
+                <div class="stat-display">
+                    <div class="stat-label">⚡ Par seconde</div>
+                    <div class="stat-value" id="gpsDisplay">0</div>
+                </div>
+                <div class="stat-display">
+                    <div class="stat-label">🔥 Par clic</div>
+                    <div class="stat-value" id="gpcDisplay">1</div>
+                </div>
+                <div class="stat-display">
+                    <div class="stat-label">⭐ Gemmes de prestige</div>
+                    <div class="stat-value" id="gemsDisplay">0</div>
+                </div>
+            </div>
+        </header>
+        
+        <div id="gameArea">
+            <div>
+                <div id="clickArea">
+                    <h2>💰 Clique pour gagner de l'or!</h2>
+                    <div id="clickButton">💰</div>
+                    <div id="clickStats" style="margin-top: 20px;">
+                        <p style="font-size: 18px;">Total de clics: <strong id="totalClicks">0</strong></p>
+                        <p style="font-size: 18px;">Total produit: <strong id="totalGold">0</strong></p>
+                    </div>
+                </div>
+                
+                <div id="upgradesPanel">
+                    <h2>⚡ AMÉLIORATIONS</h2>
+                    <div class="upgrade-grid" id="upgradesGrid"></div>
+                </div>
+                
+                <div id="achievementsPanel">
+                    <h2>🏆 SUCCÈS</h2>
+                    <div class="achievement-list" id="achievementsList"></div>
+                </div>
+                
+                <div id="prestigePanel">
+                    <h2>⭐ PRESTIGE</h2>
+                    <p style="font-size: 16px; margin-bottom: 10px;">
+                        Réinitialise ton empire pour gagner des gemmes de prestige!<br>
+                        Chaque gemme multiplie ta production par 2x
+                    </p>
+                    <p style="font-size: 18px; font-weight: bold; color: #333;">
+                        Tu gagneras: <span id="prestigeGain">0</span> 💎
+                    </p>
+                    <button id="prestigeButton">PRESTIGE</button>
+                </div>
+            </div>
+            
+            <div>
+                <div id="buildingsPanel">
+                    <h2>🏗️ BÂTIMENTS</h2>
+                    <div id="buildingsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class Game {
+            constructor() {
+                this.gold = 0;
+                this.totalGold = 0;
+                this.totalClicks = 0;
+                this.goldPerClick = 1;
+                this.goldPerSecond = 0;
+                this.gems = 0;
+                this.prestigeCount = 0;
+                
+                this.buildings = [
+                    { id: 'worker', name: 'Travailleur', icon: '👷', baseCost: 15, cost: 15, count: 0, baseProduction: 0.1, production: 0.1 },
+                    { id: 'farm', name: 'Ferme', icon: '🌾', baseCost: 100, cost: 100, count: 0, baseProduction: 1, production: 1 },
+                    { id: 'mine', name: 'Mine', icon: '⛏️', baseCost: 500, cost: 500, count: 0, baseProduction: 5, production: 5 },
+                    { id: 'workshop', name: 'Atelier', icon: '🔨', baseCost: 2000, cost: 2000, count: 0, baseProduction: 20, production: 20 },
+                    { id: 'tavern', name: 'Taverne', icon: '🍺', baseCost: 8000, cost: 8000, count: 0, baseProduction: 80, production: 80 },
+                    { id: 'market', name: 'Marché', icon: '🏪', baseCost: 30000, cost: 30000, count: 0, baseProduction: 300, production: 300 },
+                    { id: 'temple', name: 'Temple', icon: '⛪', baseCost: 100000, cost: 100000, count: 0, baseProduction: 1000, production: 1000 },
+                    { id: 'castle', name: 'Château', icon: '🏰', baseCost: 500000, cost: 500000, count: 0, baseProduction: 5000, production: 5000 },
+                    { id: 'factory', name: 'Usine', icon: '🏭', baseCost: 2000000, cost: 2000000, count: 0, baseProduction: 20000, production: 20000 },
+                    { id: 'bank', name: 'Banque', icon: '🏦', baseCost: 10000000, cost: 10000000, count: 0, baseProduction: 100000, production: 100000 },
+                    { id: 'port', name: 'Port', icon: '⚓', baseCost: 50000000, cost: 50000000, count: 0, baseProduction: 500000, production: 500000 },
+                    { id: 'university', name: 'Université', icon: '🎓', baseCost: 250000000, cost: 250000000, count: 0, baseProduction: 2500000, production: 2500000 },
+                    { id: 'laboratory', name: 'Laboratoire', icon: '🔬', baseCost: 1000000000, cost: 1000000000, count: 0, baseProduction: 10000000, production: 10000000 },
+                    { id: 'monument', name: 'Monument', icon: '🗿', baseCost: 5000000000, cost: 5000000000, count: 0, baseProduction: 50000000, production: 50000000 },
+                    { id: 'spaceship', name: 'Vaisseau Spatial', icon: '🚀', baseCost: 25000000000, cost: 25000000000, count: 0, baseProduction: 250000000, production: 250000000 },
+                ];
+                
+                this.upgrades = [
+                    { id: 'click1', name: 'Main forte', icon: '✊', cost: 100, effect: 'clickPower', value: 1, bought: false },
+                    { id: 'click2', name: 'Gants magiques', icon: '🧤', cost: 1000, effect: 'clickPower', value: 5, bought: false },
+                    { id: 'click3', name: 'Bague enchantée', icon: '💍', cost: 10000, effect: 'clickPower', value: 25, bought: false },
+                    { id: 'click4', name: 'Sceptre royal', icon: '👑', cost: 100000, effect: 'clickPower', value: 100, bought: false },
+                    { id: 'prod1', name: 'Motivation', icon: '💪', cost: 500, effect: 'productionMultiplier', value: 1.5, bought: false },
+                    { id: 'prod2', name: 'Outils améliorés', icon: '🔧', cost: 5000, effect: 'productionMultiplier', value: 2, bought: false },
+                    { id: 'prod3', name: 'Machines à vapeur', icon: '⚙️', cost: 50000, effect: 'productionMultiplier', value: 3, bought: false },
+                    { id: 'prod4', name: 'Électricité', icon: '⚡', cost: 500000, effect: 'productionMultiplier', value: 5, bought: false },
+                    { id: 'worker1', name: 'Travailleurs efficaces', icon: '👷', cost: 1000, effect: 'buildingBoost', building: 'worker', multiplier: 2, bought: false },
+                    { id: 'farm1', name: 'Irrigation', icon: '💧', cost: 5000, effect: 'buildingBoost', building: 'farm', multiplier: 2, bought: false },
+                    { id: 'mine1', name: 'Explosifs', icon: '💣', cost: 25000, effect: 'buildingBoost', building: 'mine', multiplier: 2, bought: false },
+                    { id: 'castle1', name: 'Architecture royale', icon: '👑', cost: 2500000, effect: 'buildingBoost', building: 'castle', multiplier: 2, bought: false },
+                ];
+                
+                this.achievements = [
+                    { id: 'clicks10', name: 'Premier pas', desc: 'Clique 10 fois', icon: '🐣', requirement: () => this.totalClicks >= 10, unlocked: false },
+                    { id: 'clicks100', name: 'Clickeur dévoué', desc: 'Clique 100 fois', icon: '🐥', requirement: () => this.totalClicks >= 100, unlocked: false },
+                    { id: 'clicks1000', name: 'Main d\'or', desc: 'Clique 1000 fois', icon: '🦅', requirement: () => this.totalClicks >= 1000, unlocked: false },
+                    { id: 'gold1000', name: 'Premier trésor', desc: 'Atteins 1 000 pièces', icon: '💰', requirement: () => this.totalGold >= 1000, unlocked: false },
+                    { id: 'gold1m', name: 'Millionnaire', desc: 'Atteins 1 000 000 pièces', icon: '💎', requirement: () => this.totalGold >= 1000000, unlocked: false },
+                    { id: 'gold1b', name: 'Milliardaire', desc: 'Atteins 1 000 000 000 pièces', icon: '👑', requirement: () => this.totalGold >= 1000000000, unlocked: false },
+                    { id: 'building10', name: 'Petit empire', desc: 'Possède 10 bâtiments', icon: '🏘️', requirement: () => this.getTotalBuildings() >= 10, unlocked: false },
+                    { id: 'building50', name: 'Ville florissante', desc: 'Possède 50 bâtiments', icon: '🏙️', requirement: () => this.getTotalBuildings() >= 50, unlocked: false },
+                    { id: 'building100', name: 'Métropole', desc: 'Possède 100 bâtiments', icon: '🌆', requirement: () => this.getTotalBuildings() >= 100, unlocked: false },
+                    { id: 'prestige1', name: 'Renaissance', desc: 'Fais ton premier prestige', icon: '⭐', requirement: () => this.prestigeCount >= 1, unlocked: false },
+                ];
+                
+                this.productionMultiplier = 1;
+                this.clickPowerBonus = 0;
+                
+                this.loadGame();
+                this.init();
+            }
+            
+            init() {
+                this.setupClickButton();
+                this.renderBuildings();
+                this.renderUpgrades();
+                this.renderAchievements();
+                this.updateUI();
+                
+                setInterval(() => this.gameLoop(), 100);
+                setInterval(() => this.saveGame(), 5000);
+                
+                document.getElementById('prestigeButton').addEventListener('click', () => this.prestige());
+            }
+            
+            setupClickButton() {
+                const btn = document.getElementById('clickButton');
+                btn.addEventListener('click', (e) => {
+                    this.click();
+                    
+                    const num = document.createElement('div');
+                    num.className = 'floating-number';
+                    num.textContent = '+' + this.formatNumber(this.goldPerClick);
+                    num.style.left = e.clientX + 'px';
+                    num.style.top = e.clientY + 'px';
+                    document.body.appendChild(num);
+                    
+                    setTimeout(() => num.remove(), 1000);
+                });
+            }
+            
+            click() {
+                const earned = this.goldPerClick;
+                this.gold += earned;
+                this.totalGold += earned;
+                this.totalClicks++;
+                this.updateUI();
+                this.checkAchievements();
+            }
+            
+            buyBuilding(building) {
+                if (this.gold >= building.cost) {
+                    this.gold -= building.cost;
+                    building.count++;
+                    building.cost = Math.floor(building.baseCost * Math.pow(1.15, building.count));
+                    this.calculateProduction();
+                    this.renderBuildings();
+                    this.updateUI();
+                    this.checkAchievements();
+                }
+            }
+            
+            calculateProduction() {
+                this.goldPerSecond = 0;
+                
+                this.buildings.forEach(building => {
+                    const boost = this.getBuildingBoost(building.id);
+                    const production = building.baseProduction * building.count * boost * this.productionMultiplier * this.getPrestigeMultiplier();
+                    building.production = production;
+                    this.goldPerSecond += production;
+                });
+                
+                this.goldPerClick = 1 + this.clickPowerBonus;
+                this.goldPerClick *= this.getPrestigeMultiplier();
+            }
+            
+            getBuildingBoost(buildingId) {
+                let boost = 1;
+                this.upgrades.forEach(upgrade => {
+                    if (upgrade.bought && upgrade.effect === 'buildingBoost' && upgrade.building === buildingId) {
+                        boost *= upgrade.multiplier;
+                    }
+                });
+                return boost;
+            }
+            
+            getPrestigeMultiplier() {
+                return Math.pow(2, this.gems);
+            }
+            
+            buyUpgrade(upgrade) {
+                if (this.gold >= upgrade.cost && !upgrade.bought) {
+                    this.gold -= upgrade.cost;
+                    upgrade.bought = true;
+                    
+                    if (upgrade.effect === 'clickPower') {
+                        this.clickPowerBonus += upgrade.value;
+                    } else if (upgrade.effect === 'productionMultiplier') {
+                        this.productionMultiplier *= upgrade.value;
+                    }
+                    
+                    this.calculateProduction();
+                    this.renderUpgrades();
+                    this.updateUI();
+                    this.showNotification(`Amélioration achetée: ${upgrade.name}!`, upgrade.icon);
+                }
+            }
+            
+            getTotalBuildings() {
+                return this.buildings.reduce((sum, b) => sum + b.count, 0);
+            }
+            
+            calculatePrestigeGain() {
+                return Math.floor(Math.sqrt(this.totalGold / 1000000000));
+            }
+            
+            prestige() {
+                const gain = this.calculatePrestigeGain();
+                if (gain <= 0) return;
+                
+                if (!confirm(`Réinitialiser ton empire pour gagner ${gain} 💎 ?\n\nCela va tout réinitialiser mais tu gagneras un multiplicateur permanent de x${Math.pow(2, gain).toFixed(2)} !`)) {
+                    return;
+                }
+                
+                this.gems += gain;
+                this.prestigeCount++;
+                
+                // Reset
+                this.gold = 0;
+                this.totalGold = 0;
+                this.totalClicks = 0;
+                this.goldPerClick = 1;
+                this.goldPerSecond = 0;
+                this.productionMultiplier = 1;
+                this.clickPowerBonus = 0;
+                
+                this.buildings.forEach(b => {
+                    b.count = 0;
+                    b.cost = b.baseCost;
+                    b.production = b.baseProduction;
+                });
+                
+                this.upgrades.forEach(u => u.bought = false);
+                
+                this.calculateProduction();
+                this.renderBuildings();
+                this.renderUpgrades();
+                this.updateUI();
+                this.checkAchievements();
+                
+                this.showNotification(`Prestige réussi! +${gain} 💎`, '⭐');
+            }
+            
+            checkAchievements() {
+                this.achievements.forEach(achievement => {
+                    if (!achievement.unlocked && achievement.requirement()) {
+                        achievement.unlocked = true;
+                        this.showNotification(`Succès débloqué: ${achievement.name}!`, achievement.icon);
+                        this.renderAchievements();
+                    }
+                });
+            }
+            
+            gameLoop() {
+                const gain = this.goldPerSecond / 10;
+                this.gold += gain;
+                this.totalGold += gain;
+                this.updateUI();
+            }
+            
+            renderBuildings() {
+                const list = document.getElementById('buildingsList');
+                list.innerHTML = '';
+                
+                this.buildings.forEach(building => {
+                    const canAfford = this.gold >= building.cost;
+                    const card = document.createElement('div');
+                    card.className = `building-card ${canAfford ? 'affordable' : ''}`;
+                    
+                    card.innerHTML = `
+                        <div class="building-header">
+                            <span class="building-icon">${building.icon}</span>
+                            <span class="building-name">${building.name}</span>
+                            <span class="building-count">${building.count}</span>
+                        </div>
+                        <div class="building-info">
+                            <span class="building-cost">💰 ${this.formatNumber(building.cost)}</span>
+                            <span class="building-production">⚡ ${this.formatNumber(building.production)}/s</span>
+                        </div>
+                    `;
+                    
+                    card.addEventListener('click', () => this.buyBuilding(building));
+                    list.appendChild(card);
+                });
+            }
+            
+            renderUpgrades() {
+                const grid = document.getElementById('upgradesGrid');
+                grid.innerHTML = '';
+                
+                this.upgrades.forEach(upgrade => {
+                    const card = document.createElement('div');
+                    card.className = `upgrade-card ${upgrade.bought ? 'purchased' : ''}`;
+                    
+                    card.innerHTML = `
+                        <div class="upgrade-icon">${upgrade.icon}</div>
+                        <div class="upgrade-name">${upgrade.name}</div>
+                        <div class="upgrade-cost">${upgrade.bought ? 'ACHETÉ' : '💰 ' + this.formatNumber(upgrade.cost)}</div>
+                    `;
+                    
+                    if (!upgrade.bought) {
+                        card.addEventListener('click', () => this.buyUpgrade(upgrade));
+                    }
+                    
+                    grid.appendChild(card);
+                });
+            }
+            
+            renderAchievements() {
+                const list = document.getElementById('achievementsList');
+                list.innerHTML = '';
+                
+                this.achievements.forEach(achievement => {
+                    const div = document.createElement('div');
+                    div.className = `achievement ${achievement.unlocked ? 'unlocked' : ''}`;
+                    
+                    div.innerHTML = `
+                        <div class="achievement-icon">${achievement.icon}</div>
+                        <div class="achievement-text">
+                            <div class="achievement-name">${achievement.name}</div>
+                            <div class="achievement-desc">${achievement.desc}</div>
+                        </div>
+                    `;
+                    
+                    list.appendChild(div);
+                });
+            }
+            
+            updateUI() {
+                document.getElementById('goldDisplay').textContent = this.formatNumber(this.gold);
+                document.getElementById('gpsDisplay').textContent = this.formatNumber(this.goldPerSecond);
+                document.getElementById('gpcDisplay').textContent = this.formatNumber(this.goldPerClick);
+                document.getElementById('gemsDisplay').textContent = this.gems;
+                document.getElementById('totalClicks').textContent = this.formatNumber(this.totalClicks);
+                document.getElementById('totalGold').textContent = this.formatNumber(this.totalGold);
+                
+                const prestigeGain = this.calculatePrestigeGain();
+                document.getElementById('prestigeGain').textContent = prestigeGain;
+                document.getElementById('prestigeButton').disabled = prestigeGain <= 0;
+            }
+            
+            formatNumber(num) {
+                if (num < 1000) return Math.floor(num).toString();
+                if (num < 1000000) return (num / 1000).toFixed(2) + 'K';
+                if (num < 1000000000) return (num / 1000000).toFixed(2) + 'M';
+                if (num < 1000000000000) return (num / 1000000000).toFixed(2) + 'B';
+                return (num / 1000000000000).toFixed(2) + 'T';
+            }
+            
+            showNotification(message, icon) {
+                const notif = document.createElement('div');
+                notif.className = 'notification';
+                notif.innerHTML = `
+                    <div style="font-size: 32px; text-align: center; margin-bottom: 10px;">${icon}</div>
+                    <div style="text-align: center; font-size: 16px;">${message}</div>
+                `;
+                document.body.appendChild(notif);
+                
+                setTimeout(() => notif.remove(), 3000);
+            }
+            
+            saveGame() {
+                const saveData = {
+                    gold: this.gold,
+                    totalGold: this.totalGold,
+                    totalClicks: this.totalClicks,
+                    gems: this.gems,
+                    prestigeCount: this.prestigeCount,
+                    productionMultiplier: this.productionMultiplier,
+                    clickPowerBonus: this.clickPowerBonus,
+                    buildings: this.buildings.map(b => ({ count: b.count, cost: b.cost })),
+                    upgrades: this.upgrades.map(u => ({ bought: u.bought })),
+                    achievements: this.achievements.map(a => ({ unlocked: a.unlocked }))
+                };
+                localStorage.setItem('empireClicker', JSON.stringify(saveData));
+            }
+            
+            loadGame() {
+                const saved = localStorage.getItem('empireClicker');
+                if (!saved) return;
+                
+                try {
+                    const data = JSON.parse(saved);
+                    this.gold = data.gold || 0;
+                    this.totalGold = data.totalGold || 0;
+                    this.totalClicks = data.totalClicks || 0;
+                    this.gems = data.gems || 0;
+                    this.prestigeCount = data.prestigeCount || 0;
+                    this.productionMultiplier = data.productionMultiplier || 1;
+                    this.clickPowerBonus = data.clickPowerBonus || 0;
+                    
+                    if (data.buildings) {
+                        data.buildings.forEach((saved, i) => {
+                            if (this.buildings[i]) {
+                                this.buildings[i].count = saved.count;
+                                this.buildings[i].cost = saved.cost;
+                            }
+                        });
+                    }
+                    
+                    if (data.upgrades) {
+                        data.upgrades.forEach((saved, i) => {
+                            if (this.upgrades[i]) {
+                                this.upgrades[i].bought = saved.bought;
+                            }
+                        });
+                    }
+                    
+                    if (data.achievements) {
+                        data.achievements.forEach((saved, i) => {
+                            if (this.achievements[i]) {
+                                this.achievements[i].unlocked = saved.unlocked;
+                            }
+                        });
+                    }
+                    
+                    this.calculateProduction();
+                } catch (e) {
+                    console.error('Erreur de chargement:', e);
+                }
+            }
+        }
+        
+        const game = new Game();
+    </script>
+</body>
+</html>
